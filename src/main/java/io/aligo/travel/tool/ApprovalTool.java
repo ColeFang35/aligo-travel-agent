@@ -1,81 +1,43 @@
 package io.aligo.travel.tool;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.agentscope.core.tool.Tool;
 import io.agentscope.core.tool.ToolParam;
+import io.aligo.travel.dao.Approval;
+import io.aligo.travel.dao.ApprovalMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 出差申请工具：发起审批流 + 查询申请记录（文件持久化，重启/断电不丢）。
+ * 出差申请工具：发起审批流 + 查询申请记录。
  *
- * <p>文章"为我提申请"按钮话术恰好是规则引擎快车道的固定套路：命中后跳过
- * 意图分析直接路由到本智能体。仓库默认持久化到 data/approvals.json（进程内
- * 缓存 + 落盘），接入真实 OA 时替换为对审批系统的读写即可，代码路径完全一致。
+ * <p>持久化：审批单写入 <b>MySQL</b>（MyBatis 数据访问层），状态变更由数据库
+ * <b>触发器</b>自动写入审计表；单号在 SQL 内计算；统计走<b>存储过程</b>与<b>函数</b>。
+ * 查询：列表走 <b>Redis</b> 缓存（60s TTL），提交后主动失效，降低数据库压力。
+ *
+ * <p>"为我提申请"是规则引擎快车道的固定话术，命中后直达本智能体。
  */
 @Component
 public class ApprovalTool {
 
-    private static final ObjectMapper OM = new ObjectMapper();
-    private static final Map<String, Map<String, Object>> REPO = new ConcurrentHashMap<>();
-    private static final AtomicInteger SEQ = new AtomicInteger(0);
-    private static final Path STORE = Path.of("data", "approvals.json");
+    private static final Logger log = LoggerFactory.getLogger(ApprovalTool.class);
+    private static final String CACHE_KEY = "aligo:approval:list";
+    private static final Duration CACHE_TTL = Duration.ofSeconds(60);
+    private static final DateTimeFormatter D = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    static {
-        load();
-    }
+    private final ApprovalMapper mapper;
+    private final StringRedisTemplate redis;
 
-    /** 从本地文件恢复申请单（含自增序号），服务重启后记录不丢失。 */
-    private static synchronized void load() {
-        try {
-            if (Files.exists(STORE)) {
-                List<?> list = OM.readValue(STORE.toFile(), List.class);
-                int max = 0;
-                for (Object o : list) {
-                    Map<String, Object> rec = (Map<String, Object>) o;
-                    String id = String.valueOf(rec.get("applyId"));
-                    REPO.put(id, rec);
-                    int n = parseSeq(id);
-                    if (n > max) { max = n; }
-                }
-                SEQ.set(max);
-            }
-        } catch (Exception e) {
-            // 数据文件损坏时忽略，从空仓库重新开始
-        }
-    }
-
-    private static int parseSeq(String id) {
-        try {
-            String[] parts = id.split("-");
-            return Integer.parseInt(parts[parts.length - 1]);
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-
-    /** 落盘全部申请单。 */
-    private static synchronized void persist() {
-        try {
-            Files.createDirectories(STORE.getParent());
-            List<Map<String, Object>> list = new ArrayList<>(REPO.values());
-            list.sort((a, b) -> String.valueOf(b.get("applyId")).compareTo(String.valueOf(a.get("applyId"))));
-            String json = OM.writeValueAsString(list);
-            Files.write(STORE, json.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public ApprovalTool(ApprovalMapper mapper, StringRedisTemplate redis) {
+        this.mapper = mapper;
+        this.redis = redis;
     }
 
     @Tool(description = "提交出差申请单，发起审批流程。")
@@ -84,47 +46,94 @@ public class ApprovalTool {
             @ToolParam(name = "date", description = "出差日期 yyyy-MM-dd") String date,
             @ToolParam(name = "budget", description = "预算金额，元；可空") String budget,
             @ToolParam(name = "reason", description = "出差事由") String reason) {
-        String id = "OA-" + String.format("%05d", SEQ.incrementAndGet());
-        String b = budget == null || budget.isBlank() ? "按差标默认" : budget;
-        Map<String, Object> rec = new java.util.HashMap<>();
-        rec.put("applyId", id);
-        rec.put("destination", destination);
-        rec.put("date", date);
-        rec.put("budget", b);
-        rec.put("reason", reason == null || reason.isBlank() ? "" : reason);
-        rec.put("status", "审批中（直属上级）");
-        rec.put("sla", "24 小时内");
-        rec.put("applyTime", LocalDate.now(ZoneId.of("Asia/Shanghai")).toString());
-        REPO.put(id, rec);
-        persist();
-        return toJson(rec);
+
+        Approval a = new Approval();
+        a.setApplyId(mapper.nextApplyId());                       // 单号在 SQL 内生成
+        a.setDestination(destination);
+        a.setTravelDate(parseDate(date));
+        a.setBudget(budget == null || budget.isBlank() ? "按差标默认" : budget);
+        a.setReason(reason == null ? "" : reason);
+        a.setStatus("审批中（直属上级）");
+        a.setSla("24 小时内");
+        a.setApplyTime(LocalDate.now(ZoneId.of("Asia/Shanghai")));
+        mapper.insert(a);                                          // 触发器自动写审计
+
+        evictCache();
+        return toJson(a);
     }
 
     @Tool(description = "查询当前用户全部出差申请记录列表。")
     public String approval_list() {
-        List<Map<String, Object>> records = new ArrayList<>(REPO.values());
-        records.sort((a, b) -> String.valueOf(b.get("applyId")).compareTo(String.valueOf(a.get("applyId"))));
+        String cached = getCache();
+        if (cached != null) {
+            log.debug("approval_list 命中 Redis 缓存");
+            return cached;
+        }
+        List<Approval> records = mapper.findAll();
+        String json = buildListJson(records);
+        setCache(json);
+        return json;
+    }
+
+    // ---------------- Redis 缓存（可选：Redis 不可用时自动跳过，不影响主流程） ----------------
+
+    private String getCache() {
+        try {
+            return redis.opsForValue().get(CACHE_KEY);
+        } catch (Exception e) {
+            log.warn("Redis 读取失败，回退数据库: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private void setCache(String json) {
+        try {
+            redis.opsForValue().set(CACHE_KEY, json, CACHE_TTL);
+        } catch (Exception e) {
+            log.warn("Redis 写入失败: {}", e.getMessage());
+        }
+    }
+
+    private void evictCache() {
+        try {
+            redis.delete(CACHE_KEY);
+        } catch (Exception e) {
+            log.warn("Redis 失效失败: {}", e.getMessage());
+        }
+    }
+
+    // ---------------- 组装返回给前端的卡片 JSON ----------------
+
+    private static LocalDate parseDate(String s) {
+        try {
+            return (s == null || s.isBlank()) ? null : LocalDate.parse(s.trim());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String buildListJson(List<Approval> records) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"_card\":\"approval_list\",\"count\":").append(records.size()).append(",\"records\":[");
         for (int i = 0; i < records.size(); i++) {
             if (i > 0) { sb.append(","); }
             sb.append(toJson(records.get(i)));
         }
-        sb.append("]}");
-        return sb.toString();
+        return sb.append("]}").toString();
     }
 
-    private static String toJson(Map<String, Object> rec) {
-        StringBuilder sb = new StringBuilder("{");
-        sb.append("\"_card\":\"approval\",");
-        sb.append("\"applyId\":\"").append(rec.get("applyId")).append("\",");
-        sb.append("\"destination\":\"").append(rec.get("destination")).append("\",");
-        sb.append("\"date\":\"").append(rec.get("date")).append("\",");
-        sb.append("\"budget\":\"").append(rec.get("budget")).append("\",");
-        sb.append("\"reason\":\"").append(rec.get("reason")).append("\",");
-        sb.append("\"status\":\"").append(rec.get("status")).append("\",");
-        sb.append("\"sla\":\"").append(rec.get("sla")).append("\"");
-        sb.append("}");
-        return sb.toString();
+    private static String toJson(Approval r) {
+        return new StringBuilder("{")
+                .append("\"_card\":\"approval\",")
+                .append("\"applyId\":\"").append(nz(r.getApplyId())).append("\",")
+                .append("\"destination\":\"").append(nz(r.getDestination())).append("\",")
+                .append("\"date\":\"").append(r.getTravelDate() == null ? "" : r.getTravelDate().format(D)).append("\",")
+                .append("\"budget\":\"").append(nz(r.getBudget())).append("\",")
+                .append("\"reason\":\"").append(nz(r.getReason())).append("\",")
+                .append("\"status\":\"").append(nz(r.getStatus())).append("\",")
+                .append("\"sla\":\"").append(nz(r.getSla())).append("\"")
+                .append("}").toString();
     }
+
+    private static String nz(String s) { return s == null ? "" : s; }
 }

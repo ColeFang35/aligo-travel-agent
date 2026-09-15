@@ -14,7 +14,13 @@
 
 ## 快速开始
 
-需要 JDK 17 + Maven 3.9。
+需要 JDK 17 + Maven 3.9，以及 **MySQL**（审批数据）与 **Redis**（列表缓存）。
+
+先建库（含表、触发器、存储过程、函数）：
+
+```bash
+mysql -uroot -p < src/main/resources/db/schema.sql
+```
 
 ```bash
 mvn -q package -DskipTests
@@ -25,6 +31,24 @@ java -jar target/aligo-travel-agent-1.0.0.jar
 > Windows 下若中文路径导致 mvn 乱码，改用绝对路径调用 `mvn.cmd`；重启前先结束占用 8080 端口的进程。
 
 要用真实模型：设置 `DASHSCOPE_API_KEY` 与 `DASHSCOPE_MODEL`，底层模型切换为通义千问，编排逻辑不变。
+
+## 数据层（MySQL + MyBatis + Redis）
+
+审批单持久化在 **MySQL**，访问层用 **MyBatis**；列表查询走 **Redis** 缓存。
+
+| 组件 | 用在哪 |
+|---|---|
+| `dao/ApprovalMapper.java` + `resources/mapper/ApprovalMapper.xml` | MyBatis 数据访问层（增 / 查 / 单号生成） |
+| `resources/db/schema.sql` | 建库建表 + **触发器** + **存储过程** + **函数** |
+| `dao/Approval.java` | 表 `travel_approval` 的实体 |
+| `Redis` | `aligo:approval:list` 列表缓存（60s TTL），提交后主动失效 |
+
+数据库对象：
+- 表 `travel_approval`（审批单）、`approval_audit`（变更审计）
+- 触发器 `trg_approval_after_insert` / `trg_approval_after_update` —— **状态变更自动写审计表**，应用层不写审计
+- 存储过程 `sp_approval_stats_by_month(year, month)` —— 按月统计；`sp_approve_application(apply_id, status)` —— 状态流转
+- 函数 `fn_count_by_destination(destination)` —— 按目的地累计计数
+- 申请单号在 SQL 内生成（`CONCAT` + `LPAD` + `MAX`），应用层不维护自增状态
 
 ## 试试这些
 

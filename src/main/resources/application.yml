@@ -1,12 +1,40 @@
 server:
   port: 8080
 
+spring:
+  # ---------- MySQL 数据源 ----------
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/aligo_travel?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 5000
+  # ---------- Redis（会话 / 上下文缓存）----------
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 4
+
+# ---------- MyBatis ----------
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: io.aligo.travel.dao
+  configuration:
+    map-underscore-to-camel-case: true
+
 travel:
   llm:
     # mock（剧本模型，零依赖可复现） | dashscope（通义千问，需 DASHSCOPE_API_KEY）
     provider: mock
     model-id: dashscope:qwen-plus
-    # dashscope 无 key 时自动降级 mock，保证系统在任何环境可复现
     fallback-to-mock: true
 
 logging:
