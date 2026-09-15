@@ -1,0 +1,21 @@
+# 一键起依赖：MySQL（审批数据）+ Redis（列表缓存）
+#   docker compose up -d
+#   mysql -h127.0.0.1 -uroot -proot < src/main/resources/db/schema.sql
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: aligo-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: aligo_travel
+    ports: ["3306:3306"]
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - aligo-mysql-data:/var/lib/mysql
+      - ./src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+  redis:
+    image: redis:7-alpine
+    container_name: aligo-redis
+    ports: ["6379:6379"]
+volumes:
+  aligo-mysql-data:
