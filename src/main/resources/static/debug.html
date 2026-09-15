@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AliGo 调试助手 · 全链路追踪 / 火焰图 / 流程图 / Token / 评测</title>
+<link rel="stylesheet" href="app.css">
+<style>
+  body { padding-bottom: 40px; }
+  .wrap { display: grid; grid-template-columns: 300px 1fr; gap: 12px; padding: 12px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+  .panel h3 { margin: 0; padding: 10px 12px; font-size: 13px; border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 600; }
+  .traces { max-height: 74vh; overflow-y: auto; }
+  .trace-item { padding: 8px 12px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 12px; }
+  .trace-item:hover { background: var(--panel2); }
+  .trace-item .q { color: var(--text); }
+  .trace-item .m { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .trace-item .lb { padding: 0 5px; border-radius: 4px; font-size: 10px; }
+  .trace-item .lb.fast { background: rgba(63,199,133,.15); color: var(--fast); }
+  .trace-item .lb.slow { background: rgba(249,180,79,.15); color: var(--slow); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .kv2 { padding: 10px 12px; font-size: 12.5px; line-height: 2; }
+  .bar { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 12px; }
+  .bar .name { width: 150px; text-align: right; color: var(--muted); }
+  .bar .v { height: 14px; border-radius: 3px; }
+  .eval-case { font-size: 12px; padding: 5px 10px; border-bottom: 1px dashed var(--line); }
+  .eval-case .pass { color: var(--ok); }
+  .eval-case .fail { color: var(--err); }
+  .sub { font-size: 11px; color: var(--muted); }
+  canvas { background: #12141a; border-radius: 8px; width: 100%; }
+  .content-panel { min-width: 0; }
+  .section { margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>调试助手</h1>
+  <span class="sub">Langfuse 风格全链路追踪 · Trace/Session/User 三维观测 · 观测-评测闭环</span>
+  <a class="badge link" href="chat.html">← 返回对话</a>
+</header>
+
+<div class="wrap">
+  <div class="panel">
+    <h3>Trace 列表（最近 50 条）</h3>
+    <div class="traces" id="traceList"><div class="empty">暂无 Trace</div></div>
+  </div>
+
+  <div class="content-panel">
+    <div class="panel section">
+      <h3>Trace 摘要</h3>
+      <div class="kv2" id="traceSummary">点击左侧 Trace 查看</div>
+    </div>
+
+    <div class="grid2 section">
+      <div class="panel">
+        <h3>🔥 火焰图（span 时间轴，AGENT/LLM/TOOL/ROUTER）</h3>
+        <canvas id="flame" width="1200" height="360"></canvas>
+        <div id="flameTip" class="meta" style="display:none;margin:8px"></div>
+      </div>
+      <div class="panel">
+        <h3>🪜 流程图（Agent 调用链 + 车道标注，Mermaid）</h3>
+        <div id="flowSvg" style="padding:8px"></div>
+        <pre id="flowSrc" style="display:none"></pre>
+      </div>
+    </div>
+
+    <div class="grid2 section">
+      <div class="panel">
+        <h3>📊 Token 统计（按 span 类型）</h3>
+        <div class="kv2" id="tokens"></div>
+      </div>
+      <div class="panel">
+        <h3>🧾 LLM 调用明细</h3>
+        <div class="kv2" id="llmRows"></div>
+      </div>
+    </div>
+
+    <div class="panel section">
+      <h3>🧠 Prompt 快照（动态组装后的系统提示词）</h3>
+      <div class="kv2" id="prompts"></div>
+    </div>
+
+    <div class="panel section">
+      <h3>📈 意图识别评测（观测-评测闭环：v1 单智能体 vs v2 快慢车道架构）</h3>
+      <div class="kv2" id="eval"></div>
+    </div>
+
+    <div class="panel section">
+      <h3>🗂 会话记忆（三表）</h3>
+      <div class="kv2" id="mem"></div>
+    </div>
+  </div>
+</div>
+
+<script src="mermaid.min.js"></script>
+<script>try{mermaid.initialize({startOnLoad:false,theme:'dark'});}catch(e){}</script>
+<script src="debug.js"></script>
+</body>
+</html>

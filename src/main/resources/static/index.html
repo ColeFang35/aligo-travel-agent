@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AliGo 智能差旅助手 · 课题首页（基于 AgentScope 2.0 Java）</title>
+<link rel="stylesheet" href="app.css">
+<style>
+  body { background: var(--bg); }
+  .home-hero { padding: 26px 36px 18px; text-align: center; background: linear-gradient(160deg,#15202e,#0e1420 60%); border-bottom: 1px solid var(--line); }
+  .home-hero h1 { font-size: 26px; margin: 6px 0 8px; letter-spacing: 1px; }
+  .home-hero .tagline { color: var(--muted); font-size: 13px; max-width: 760px; margin: 0 auto 16px; line-height: 1.8; }
+  .home-hero .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .cta a { display: inline-block; padding: 9px 22px; border-radius: 22px; text-decoration: none; font-size: 14px; font-weight: 600; background: var(--accent); color: #fff; border: none; }
+  .cta a.ghost { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+  section { max-width: 1080px; margin: 10px auto 26px; padding: 0 20px; }
+  section > h2 { font-size: 18px; margin: 22px 0 4px; color: #bcd; border-left: 4px solid var(--accent); padding-left: 10px; }
+  section > .sub { color: var(--muted); font-size: 12px; margin: 2px 0 14px; padding-left: 14px; }
+  .boxes { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 12px; margin-top: 12px; }
+  .boxx { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .boxx .ic { font-size: 20px; }
+  .boxx h4 { margin: 6px 0 4px; font-size: 14px; }
+  .boxx p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.65; }
+  .diagram { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-top: 10px; }
+  .diagram .cap { color: var(--muted); font-size: 12px; margin-top: 10px; text-align: center; }
+  .mermaid { background: transparent; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 900px){ .two-col{grid-template-columns:1fr} }
+  .learn ol { margin: 0; padding-left: 0; counter-reset: step; list-style: none; }
+  .learn li { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; counter-increment: step; position: relative; padding-left: 52px; }
+  .learn li::before { content: counter(step); position: absolute; left: 14px; top: 12px; width: 26px; height: 26px; background: var(--accent); color: #fff; text-align: center; line-height: 26px; border-radius: 50%; font-weight: 700; }
+  .learn li b { display: block; margin-bottom: 3px; font-size: 14px; }
+  .learn li span { color: var(--muted); font-size: 13px; line-height: 1.7; }
+  .chip { display:inline-block; padding:1px 8px; border-radius:10px; font-size:11px; border:1px solid var(--line); color:var(--muted); margin:2px; }
+  .highlight-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin-top:10px; }
+  .hl { background: linear-gradient(160deg,var(--panel2),var(--card)); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:10px; padding:12px 14px; }
+  .hl h4 { margin:0 0 5px; font-size:14px; }
+  .hl p { margin:0; color:var(--muted); font-size:12.5px; line-height:1.7; }
+  .hl .tag { font-size:11px; color:var(--slow); }
+  .home-cta-end { text-align:center; padding: 10px 0 30px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AliGo 智能差旅助手</h1>
+  <span class="sub">课题首页 · 学习地图 · 基于 AgentScope 2.0 Java</span>
+  <a class="badge link" href="chat.html" target="_blank">智能对话</a>
+  <a class="badge link" href="debug.html" target="_blank">调试助手</a>
+  <a class="badge link" href="tech.html" target="_blank">🔧 技术拆解</a>
+  <a class="badge link" href="Agent面试资料.pdf" target="_blank">📄 面试资料PDF</a>
+</header>
+
+<div class="home-hero">
+  <div style="font-size:12px;color:var(--slow);letter-spacing:2px;">MULTI-AGENT · INTENT ROADMAP · OBSERVABILITY</div>
+  <h1>一 眼 看 懂 多智能体差旅助手</h1>
+  <p class="tagline">
+    以「一句话差旅诉求」为入口，演示多智能体如何被<strong>意图识别引擎</strong>拆解为机票/酒店/行程/审批等子任务，
+    由<strong>快车道/慢车道</strong>路由编排（Routing / Handoffs），并配合<strong>火焰图 / 流程图</strong>实现全程可观测。
+    下面的架构图、流程图、类图与亮点，就是本课题的<strong>学习地图</strong>。
+  </p>
+  <div class="cta">
+    <a href="chat.html" target="_blank">🚀 进入智能对话体验</a>
+    <a class="ghost" href="debug.html" target="_blank">🔍 打开调试助手（火焰图/流程图）</a>
+  </div>
+  <div style="margin-top:14px">
+    <span class="chip">技术底座</span><span class="chip">多智能体</span><span class="chip">意图识别</span><span class="chip">快慢车道</span><span class="chip">RAG</span><span class="chip">Trace 观测</span><span class="chip">Spring Boot</span><span class="chip">SSE 流式</span>
+  </div>
+</div>
+
+<section>
+  <h2>一、课题简介与学习方向</h2>
+  <div class="sub">读完这一节，你就能建立对整套系统的心智模型：入口 → 意图 → 路由 → 执行 → 观测。</div>
+  <div class="two-col">
+    <div class="boxx"><div class="ic">🧭</div><h4>要解决什么问题？</h4><p>一次“出差”包含机票、酒店、行程、报销审批等多个子任务，单智能体单 Prompt 无法承接。课题用多智能体 + 意图识别把一句话拆解并分别执行。</p></div>
+    <div class="boxx"><div class="ic">⚙️</div><h4>哪些是框架能力（复用）？</h4><p>Agent 循环、流式事件、Toolkit 工具注册、Middleware 动态 Prompt、Model 接入、Agent Handoffs —— 全部来自 AgentScope 2.0-Java，不自己再造。</p></div>
+    <div class="boxx"><div class="ic">🛠</div><h4>哪些是本课题自研（亮点）？</h4><p>意图识别引擎、快慢车道路由、卡片化响应、审批持久化(JSON)、以及火焰图/流程图/Prompt/记忆的本地调试助手。</p></div>
+    <div class="boxx"><div class="ic">🏫</div><h4>对学生有什么用？</h4><p>跟着「架构 → 流程 → 类图 → 亮点 → 运行」五步看，即可顺着一条请求的完整生命周期学到多智能体编程范式。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>二、项目架构图</h2>
+  <div class="sub">分层视图：浏览器 → Spring Boot 编排层 → AgentScope 框架层 → 业务工具 → 存储。蓝色 = 框架内置，橙色 = 课题自研。</div>
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  subgraph CLIENT["01 浏览器（前端 static）"]
+    W1["index.html 首页"]
+    W2["chat.html 对话 + 卡片"]
+    W3["debug.html 调试助手"]
+  end
+  subgraph WEB["02 Spring Boot 编排层 (io.aligo.travel)"]
+    C1["ChatController<br/>/api/chat/stream (SSE)"]
+    O1["OrchestratorService"]
+    I1["IntentClassifier 意图识别"]
+    R1{"快/慢车道 ?"}
+    F1["SubAgentFactory 主/子智能体"]
+    TR["FlowTracer + TaskPrintHook 观测"]
+  end
+  subgraph ASF["03 AgentScope 2.0-Java 框架层(复用)"]
+    A1["ReActAgent 循环 + 28 事件"]
+    A2["Toolkit @Tool 工具注册"]
+    A3["MiddlewareBase 动态Prompt状态机"]
+    A4["Model / DashScope 双模式"]
+    A5["Agent Handoffs 接管"]
+  end
+  subgraph BUS["04 业务能力(自研)"]
+    T1["TravelTools 机票/酒店/天气"]
+    T2["ItineraryCardTool 行程卡"]
+    T3["ApprovalTool 审批+持久化"]
+    KG["KnowledgeBaseService RAG"]
+  end
+  subgraph STO["05 存储"]
+    D1["data/approvals.json"]
+    D2["内存 Trace 仓库"]
+  end
+  W2 -->|SSE 事件| C1
+  C1 --> O1 --> I1 --> R1
+  R1 -->|快车道/慢车道| F1
+  F1 --> A1 --> A4
+  A1 --> A2
+  A1 --> A3
+  A1 --> A5
+  F1 --> TR
+  F1 --> T1 & T2 & T3 & KG
+  T3 --> D1
+  TR --> D2
+    </pre>
+    <div class="cap">图 1 · 系统分层架构：请求从浏览器流式进入，经编排层拆分意图，交给 AgentScope 智能体执行工具，全程被观测。</div>
+  </div>
+</section>
+
+<section>
+  <h2>三、核心流程图（一句话 → 多智能体协作）</h2>
+  <div class="sub">顺这条消息看：一条“后天去北京出差，看看机票酒店”会怎样被拆解并串起各部门。</div>
+  <div class="diagram">
+    <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  actor U as 用户
+  participant W as Web (chat.html)
+  participant O as OrchestratorService
+  participant I as IntentClassifier
+  participant M as 主 Agent
+  participant SA as 子 Agent (机票/酒店/行程/审批)
+  participant T as Toolkit 工具
+  participant KG as KnowledgeBaseService
+  U->>W: 一句话差旅诉求（可多意图）
+  W->>O: /api/chat/stream SSE 流
+  O->>I: intent 识别 + 槽位校验
+  I-->>O: 意图集合 + query 改写
+  alt 单意图 → 快车道
+    O->>M: 直达 plan/approval_agent
+  else 多意图 → 慢车道
+    O->>M: main_plan 编排
+    M->>I: 拆分为 N 个子意图
+    loop 每个子意图
+      M->>SA: 子 Agent 接管 (Handoffs)
+      SA->>T: tool_call (flight/hotel/...)
+      SA->>KG: rag_query (报销标准,可选)
+      T-->>SA: tool_result 卡片JSON
+      SA-->>M: agent_end 卡片
+    end
+  end
+  M-->>O: 汇总卡片
+  O-->>W: 事件流 (think/text/card/done)
+  W-->>U: 卡片化回复
+    </pre>
+    <div class="cap">图 2 · 核心时序：意图识别决定车道，子智能体逐项执行工具，RAG 注入知识，结果卡片化回流。</div>
+  </div>
+</section>
+
+<section>
+  <h2>四、类图（核心类关系，一图看懂代码结构）</h2>
+  <div class="sub">照着这张类图即可定位本课题的关键类与依赖，读代码时按图索骥。</div>
+  <div class="diagram">
+    <pre class="mermaid">
+classDiagram
+  class OrchestratorService {
+    +handle(query, session)<br/>+streamEvents(...)
+  }
+  class IntentClassifier {
+    +classify(query, session) IntentDecision
+    +approvalQuery(query) boolean
+  }
+  class IntentDecision {
+    +lane : FAST/SLOW
+    +intents[ ]
+    +rewrite
+  }
+  class SubAgentFactory {
+    +create(key) Agent
+  }
+  class ScriptDirector {
+    +intentText(query)
+    +pick() String
+  }
+  class ScriptedMockModel {
+    +chat() ScriptRunner
+  }
+  class FlowTracer {
+    +startTrace()
+    +span(type,label)
+    +toFlow() Mermaid
+  }
+  class ApprovalTool {
+    +submit(args) String
+    +list() String
+    +persist() void
+  }
+  class KnowledgeBaseService {
+    +query(q) List~Doc~
+  }
+  class TravelTools {
+    +flight() +hotel()
+    +weather() 
+  }
+  OrchestratorService --> IntentClassifier
+  OrchestratorService --> SubAgentFactory
+  OrchestratorService --> FlowTracer
+  SubAgentFactory --> ScriptDirector
+  ScriptDirector --> ScriptedMockModel
+  ScriptDirector --> ApprovalTool
+  ScriptDirector --> KnowledgeBaseService
+  ScriptDirector --> TravelTools
+    </pre>
+    <div class="cap">图 3 · 核心类图：编排 - 意图 - 剧本 - 工具 四条主线，外加全程观测的 FlowTracer。</div>
+  </div>
+</section>
+
+<section>
+  <h2>五、项目亮点（答辩 / 报告要点）</h2>
+  <div class="sub">本课题区别于“简单调用 API 的 Demo”的四个关键点。</div>
+  <div class="highlight-grid">
+    <div class="hl"><div class="tag">框架内聚</div><h4>1 · 只做编排，复用 AgentScope</h4><p>Agent 循环、流式事件、Toolkit、Middleware、Model 全部用框架 API；课题只写业务编排与观测，符合“先查 API 再动手”。</p></div>
+    <div class="hl"><div class="tag">意图引擎</div><h4>2 · 快/慢车道路由</h4><p>单意图直接走快车道；多意图混排走慢车道，按子意图拆分调度，并用 query 改写提升识别准确率（内置评测 v2=100%）。</p></div>
+    <div class="hl"><div class="tag">上下文工程</div><h4>3 · 动态 Prompt + 记忆 + RAG</h4><p>Middleware 状态机按阶段动态拼 Prompt，会话记忆三表最小权限共享，KnowledgeBase 模拟 MaxKB 注入差旅政策。</p></div>
+    <div class="hl"><div class="tag">可观测闭环</div><h4>4 · 调试助手（火焰图/流程图）</h4><p>全程 Trace，火焰图看耗时、流程图看拓扑、Prompt 快照可回放、内置意图评测形成“观测-评测”闭环。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>六、学生学习路线（Recommended）</h2>
+  <div class="sub">按顺序走完这 5 步，即可独立讲清并二次开发本项目。</div>
+  <ol class="learn">
+    <li><b>① 跑起来 & 体验</b><span>执行 mvn package 后启动，在 chat.html 里试用“规划行程、提申请、查记录、问报销标准”，感受卡片化多智能体协作。</span></li>
+    <li><b>② 读架构 & 类图</b><span>对照本文第二、四节，找到 OrchestratorService / IntentClassifier / SubAgentFactory 三个入口类，读懂一次请求的流转。</span></li>
+    <li><b>③ 理解框架 vs 自研</b><span>打开 pom.xml 与各 Service，标注哪些是 AgentScope API、哪些是自研逻辑，建立“复用优先”的意识。</span></li>
+    <li><b>④ 跟一次 Trace</b><span>发送多意图话术后打开 debug.html，用火焰图与流程图回放同一条请求，理解 span 与工具耗时。</span></li>
+    <li><b>⑤ 动手改一处</b><span>尝试加一个新工具（参考 ItineraryCardTool / ApprovalTool），或改阈值/槽位，重跑评测看准确率变化。</span></li>
+  </ol>
+</section>
+
+<div class="home-cta-end">
+  <div class="cta" style="justify-content:center">
+    <a href="chat.html" target="_blank">开始体验智能对话</a>
+    <a class="ghost" href="debug.html" target="_blank">查看调试助手</a>
+    <a class="ghost" href="tech.html" target="_blank">技术拆解讲稿</a>
+  </div>
+  <div class="sub" style="margin-top:10px">AliGo Travel Agent · 课题项目 · 基于 AgentScope 2.0-Java</div>
+</div>
+
+<script src="mermaid.min.js"></script>
+<script>try{mermaid.initialize({startOnLoad:true,theme:'dark'});}catch(e){}</script>
+
+  <section>
+  <h2>七、关键技术与架构拆解</h2>
+  <div class="sub">讲解文档（含架构图 / 类图 / 时序图 / 组件拆解 / 高频追问），浏览器直接渲染 Mermaid 图。</div>
+  <div class="boxes"><div class="boxx"><div class="ic">🔧</div><h4>技术拆解页 tech.html</h4><p>一页讲透架构与组件，图可交互放大，为答辩与讲课准备的口述稿精简版。配套根目录《关键技术拆解》Markdown 全文。</p><a href="tech.html" target="_blank" class="link" style="display:inline-block;margin-top:8px">打开技术拆解 ↗</a></div></div>
+</section>
+<section>
+    <h2>面试资料（PDF）</h2>
+    <div class="sub">配套两份面试文档整理成的单文件 PDF，可直接下载打印。</div>
+    <div class="boxes"><div class="boxx"><div class="ic">📄</div><h4>面试资料 PDF</h4><p>Agent / AI 应用开发工程师 面试八股文 × 项目面试稿，88 页左右。</p><a href="Agent面试资料.pdf" target="_blank" class="link" style="display:inline-block;margin-top:8px">⬇ 下载面试资料.pdf</a></div></div>
+  </section>
+</body>
+</html>

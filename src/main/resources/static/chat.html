@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能对话 · AliGo 智能差旅助手</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header>
+  <h1>AliGo 智能差旅助手</h1>
+  <span class="sub">复刻阿里商旅多智能体架构 · AgentScope 2.0 Java · Spring Boot</span>
+  <span class="badge" id="providerBadge">…</span>
+  <span class="badge">mock / dashscope 双模式</span>
+  <a class="badge link" href="debug.html" target="_blank">打开调试助手 →</a>
+</header>
+
+<div class="layout">
+  <!-- 左侧：对话 -->
+  <div class="left">
+    <div class="shortcuts">
+      <span style="color:#667;font-size:12px;line-height:24px;margin-right:2px">演示话术（覆盖快慢车道各模式）：</span>
+      <button onclick="demo(this,'fast')">为我规划行程：明天杭州到上海出差，预算800<span class="lane fast">快车道</span></button>
+      <button onclick="demo(this,'slow')">后天去北京出差，看看机票和酒店，顺便说下住宿报销标准<span class="lane slow">慢车道多意图</span></button>
+      <button onclick="demo(this,'slow')">查一下北京明天的天气<span class="lane slow">Handoffs</span></button>
+      <button onclick="demo(this,'slow')">差旅报销标准是什么<span class="lane slow">RAG</span></button>
+      <button onclick="demo(this,'fast')">为我提申请：后天去武汉出差两天<span class="lane fast">快车道</span></button>
+    </div>
+    <div class="chat" id="chat"></div>
+    <div class="inputbar">
+      <select id="tenant" title="企业租户（多企业隔离）">
+        <option value="tenant-alibaba">tenant-alibaba（阿里）</option>
+        <option value="tenant-demo">tenant-demo（示例企业）</option>
+      </select>
+      <input id="input" placeholder="例：后天杭州到北京出差，帮我规划一下（按回车发送）" autocomplete="off">
+      <button id="sendBtn">发送</button>
+    </div>
+  </div>
+
+  <!-- 右侧：可视化调试 -->
+  <div class="right">
+    <div class="tabs">
+      <button class="active" data-tab="think">实时思考链</button>
+      <button data-tab="trace">Trace</button>
+      <button data-tab="flame">火焰图</button>
+      <button data-tab="flow">流程图</button>
+      <button data-tab="prompt">Prompt</button>
+      <button data-tab="memory">记忆</button>
+    </div>
+
+    <div class="content" id="panel-think">
+      <div class="hint" id="thinkHint">右侧实时展示多智能体协作的思考链：任务生命周期（PENDING/DOING/DONE/FAILED）、层级关系（缩进）、执行耗时，以及每条工具调用的输入输出。发送任意话术开始。</div>
+      <div class="thinking" id="thinking"></div>
+    </div>
+
+    <div class="content" id="panel-trace" style="display:none">
+      <div id="traceMeta" class="hint">本轮请求完成后，展示 Trace 摘要（快慢车道、意图决策、总耗时、Token）与 span 列表。</div>
+      <div id="traceDetail"></div>
+    </div>
+
+    <div class="content" id="panel-flame" style="display:none">
+      <div class="hint">Langfuse 风格全链路火焰图：AGENT / LLM / TOOL / ROUTER span，时间轴长度=耗时，点击条看输入输出。</div>
+      <canvas id="flame" width="900" height="400" style="width:100%;background:#12141a;border-radius:8px;margin-top:8px"></canvas>
+      <div id="flameTip" class="meta" style="display:none"></div>
+    </div>
+
+    <div class="content" id="panel-flow" style="display:none">
+      <div class="hint">Agent 调用流程图（Mermaid 源由后端生成，点击"chat 页流程图"的任意节点看 span）。</div>
+      <pre id="flowSrc" style="background:#12141a;border-radius:8px;padding:10px;font-size:12px;overflow:auto"></pre>
+      <div id="flowSvg"></div>
+    </div>
+
+    <div class="content" id="panel-prompt" style="display:none">
+      <div class="hint">动态 Prompt 组装快照：每次 agent.call() 前中间件注入"阶段聚焦块 + 记忆共享层"后的最终系统提示词。</div>
+      <div id="promptList"></div>
+    </div>
+
+    <div class="content" id="panel-memory" style="display:none">
+      <div class="hint">上下文工程三张表 + 行程槽位状态机（COLLECT→PLAN→BOOK→DONE）。</div>
+      <div id="memView"></div>
+    </div>
+  </div>
+</div>
+
+<script src="mermaid.min.js"></script>
+<script>try{mermaid.initialize({startOnLoad:false,theme:'dark'});}catch(e){}</script>
+<script src="app.js"></script>
+</body>
+</html>

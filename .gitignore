@@ -1,0 +1,35 @@
+# ---- Java / Maven ----
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+
+# ---- IDE ----
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# ---- 构建 / 运行产物 ----
+*.log
+chrome_headless_profile/
+.shots/
+NUL
+$null
+
+# ---- 个人准备材料（不公开）----
+Agent面试八股文.md
+Agent面试资料.pdf
+Agent面试题库与项目稿.pdf
+答辩八股文.md
+答辩PPT大纲.md
+答辩_关键技术与架构.pptx
+答辩关键技术与架构.pptx
+关键技术拆解讲稿.md
+论文章节.md
+项目面试稿.md
+讲稿.md
+build_interview_pdf.py
+build_ppt.py
+*.zip

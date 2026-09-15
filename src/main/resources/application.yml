@@ -1,0 +1,14 @@
+server:
+  port: 8080
+
+travel:
+  llm:
+    # mock（剧本模型，零依赖可复现） | dashscope（通义千问，需 DASHSCOPE_API_KEY）
+    provider: mock
+    model-id: dashscope:qwen-plus
+    # dashscope 无 key 时自动降级 mock，保证系统在任何环境可复现
+    fallback-to-mock: true
+
+logging:
+  level:
+    io.aligo.travel: INFO
