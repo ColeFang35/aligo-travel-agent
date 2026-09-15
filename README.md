@@ -16,7 +16,13 @@
 
 需要 JDK 17 + Maven 3.9，以及 **MySQL**（审批数据）与 **Redis**（列表缓存）。
 
-先建库（含表、触发器、存储过程、函数）：
+依赖 MySQL 与 Redis，一条命令起（`docker-compose.yml` 里 schema 会自动初始化）：
+
+```bash
+docker compose up -d          # MySQL 3306 + Redis 6379
+```
+
+已有本地 MySQL/Redis 的话，手动建库即可（含表、触发器、存储过程、函数）：
 
 ```bash
 mysql -uroot -p < src/main/resources/db/schema.sql
