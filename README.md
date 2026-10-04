@@ -7,7 +7,7 @@
 ## 亮点
 
 - **多智能体编排**：主规划 Agent + 行程 / 信息 / 知识库 / 审批 4 个子 Agent，各挂专属工具集与系统提示词，职责单一、权限受限。
-- **快 / 慢车道路由**：固定话术走规则直达（毫秒级）；复杂长句由意图识别子 Agent 显式推理拆成多意图，再做问题改写与关键词兜底。内置评测中，意图识别准确率由 70% 提升至 100%。
+- **快 / 慢车道路由**：固定话术走规则直达（毫秒级，不调用模型）；复杂长句由意图识别子 Agent 显式推理拆成多意图，再做问题改写与关键词兜底。调试页内置 10 条标注用例的意图评测，逐条给出路由结果。
 - **两种调度方式**：结果回流主 Agent 汇总（Routing），或子 Agent 直接接管本轮对话（Handoff）。
 - **上下文工程**：动态 Prompt 状态机按会话阶段拼装系统提示词；会话记忆三表；差旅报销标准走知识库检索（RAG）。
 - **可观测**：`FlowTracer` 记录各阶段 span（耗时 / Token），调试页提供火焰图、Mermaid 流程图、Prompt 快照，并内置意图评测。
@@ -86,7 +86,7 @@ trace id 见聊天流 `event:done` 的 `traceId`。
 | `GET /api/debug/trace/{id}/flow` | Mermaid 流程图 |
 | `GET /api/debug/prompts/{traceId}` | Prompt 快照 |
 | `GET /api/debug/memory/{sessionId}` | 上下文三表与记忆 |
-| `GET /api/debug/eval/intent` | 意图评测（v1 / v2 对比） |
+| `GET /api/debug/eval/intent` | 意图评测（内置 10 条标注用例；单智能体 v1 一栏是确定性模拟对照，不是实测） |
 
 ## 目录结构
 
